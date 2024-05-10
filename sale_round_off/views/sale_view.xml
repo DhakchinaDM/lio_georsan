@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="view_order_form_inherit__round_off" model="ir.ui.view">
+            <field name="name">sale.order.round.off</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+               <xpath expr="//group[@name='note_group']" position="after">
+                    <field name="is_enabled_roundoff" invisible="0"/>
+                    <field name="apply_round_off" invisible="0"/>
+                    <field name="amount_round_off" widget="monetary" options="{'currency_field': 'currency_id'}"
+                           />
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

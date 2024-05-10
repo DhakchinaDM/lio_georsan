@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <template id="favicon_icon" inherit_id="web.layout" name="Web layout">
+            <!-- change the title with reliance partner -->
+            <xpath expr="//head//title" position="before">
+                <title t-esc="'Lio-Georsan'"/>
+            </xpath>
+            <!-- change the default favicon icon with   -->
+<!--            <xpath expr="//head//link[@rel='shortcut icon']" position="after">-->
+<!--                <link type="image/x-icon" rel="shortcut icon" href="/custom_title_and_favicon/static/src/img/icon.png"/>-->
+<!--            </xpath>-->
+        </template>
+
+        <record model="ir.ui.view" id="pulse_web_layout">
+            <field name="name">pulse.web.layout</field>
+            <field name="model" eval="False"/>
+            <field name="inherit_id" ref="web.layout"/>
+            <field name="priority">16</field>
+            <field name="arch" type="xml">
+                <xpath expr="//link[@rel='shortcut icon']" position="attributes">
+                    <attribute name="t-att-href">x_icon or '/custom_title_and_favicon/static/src/img/icon.png'</attribute>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

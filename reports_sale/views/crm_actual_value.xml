@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <!--    to inherit the account.move to showing the sale order subtotal in words-->
+    <record id="crm_lead_view_form" model="ir.ui.view">
+        <field name="name">crm.lead.form.inherit</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('oe_title')]/h2" position="inside">
+
+                <div>
+                    <label for="actual_value"/>
+                    <!--                    <button class="d-inline-block px-2 py-0 btn btn-link" name="action_set_automated_probability"-->
+                    <!--                            type="object"-->
+                    <!--                            invisible="is_automated_probability">-->
+                    <!--                        <i class="fa fa-gear" role="img" title="Switch to automatic probability"-->
+                    <!--                           aria-label="Switch to automatic probability"></i>-->
+                    <!--                    </button>-->
+                    <!--                    <small class="d-inline-block oe_grey h6 mb-0" invisible="is_automated_probability">-->
+                    <!--                        <field class="mb-0" name="automated_probability" force_save="1"/>-->
+                    <!--                        %-->
+                    <!--                    </small>-->
+                    <div id="actual_revenue" class="d-flex align-items-baseline">
+                        <field name="actual_value" widget='monetary' options="{'currency_field': 'company_currency'}"/>
+                    </div>
+                </div>
+
+
+                <!--                &lt;!&ndash;            <xpath expr="//div/h2" position="inside">&ndash;&gt;-->
+                <!--                <field name="actual_value" widget="monetary"/>-->
+
+            </xpath>
+        </field>
+    </record>
+</odoo>

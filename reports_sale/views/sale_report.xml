@@ -1,0 +1,714 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="reports_sale.paper_format_sale_proforma_invoice" model="report.paperformat">
+        <field name="name">Proforma Invoice</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="page_height">0</field>
+        <field name="page_width">0</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">40</field>
+        <field name="margin_bottom">60</field>
+        <field name="margin_left">7</field>
+        <field name="margin_right">7</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">35</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <record id="sale.action_report_pro_forma_invoice" model="ir.actions.report">
+        <field name="name">PRO-FORMA Invoice</field>
+        <field name="model">sale.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">sale.report_saleorder_pro_forma</field>
+        <field name="report_file">sale.report_saleorder_pro_forma</field>
+        <field name="print_report_name">'PRO-FORMA - %s' % (object.name)</field>
+        <field name="paperformat_id" ref="reports_sale.paper_format_sale_proforma_invoice"/>
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="binding_type">report</field>
+        <field name="groups_id" eval="[(4, ref('sale.group_proforma_sales'))]"/>
+    </record>
+
+    <template id="sale.report_saleorder_pro_forma">
+        <t t-call="web.html_container">
+            <t t-set="is_pro_forma" t-value="True"/>
+            <t t-set="docs" t-value="docs.with_context(proforma=True)"/>
+            <t t-foreach="docs" t-as="doc">
+                <!--                <t t-call="reports_sale.sale_order_report_report_header" t-lang="doc.partner_id.lang"/>-->
+                <t t-call="sale.report_saleorder_document" t-lang="doc.partner_id.lang"/>
+                <!--                <t t-call="reports_sale.sale_order_report_report_footer" t-lang="doc.partner_id.lang"/>-->
+            </t>
+        </t>
+    </template>
+
+
+    <record id="reports_sale.paper_format_sale_order_quotation" model="report.paperformat">
+        <field name="name">Quotation / Order</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="page_height">0</field>
+        <field name="page_width">0</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">40</field>
+        <field name="margin_bottom">60</field>
+        <field name="margin_left">7</field>
+        <field name="margin_right">7</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">35</field>
+        <field name="dpi">90</field>
+    </record>
+
+
+    <record id="sale.action_report_saleorder" model="ir.actions.report">
+        <field name="name">Quotation / Order</field>
+        <field name="model">sale.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">sale.report_saleorder</field>
+        <field name="report_file">sale.report_saleorder</field>
+        <field name="print_report_name">(object.state in ('draft', 'sent') and 'Quotation - %s' % (object.name)) or
+            'Order - %s' % (object.name)
+        </field>
+        <field name="paperformat_id" ref="reports_sale.paper_format_sale_order_quotation"/>
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="sale.report_saleorder_raw">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <!--                <t t-call="reports_sale.sale_order_report_report_header" t-lang="doc.partner_id.lang"/>-->
+                <t t-call="sale.report_saleorder_document" t-lang="doc.partner_id.lang"/>
+                <!--                <t t-call="reports_sale.sale_order_report_report_footer" t-lang="doc.partner_id.lang"/>-->
+
+            </t>
+        </t>
+    </template>
+
+
+    <template id="sale.report_saleorder">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="reports_sale.sale_order_report_report_header" t-lang="doc.partner_id.lang"/>
+                <t t-call="sale.report_saleorder_document" t-lang="doc.partner_id.lang"/>
+                <t t-call="reports_sale.sale_order_report_report_footer" t-lang="doc.partner_id.lang"/>
+
+            </t>
+        </t>
+    </template>
+
+
+    <template id="sale.report_saleorder_document">
+        <t t-call="web.basic_layout">
+            <div class="page">
+                <t t-call="reports_sale.sale_order_report_report_header" t-lang="doc.partner_id.lang"/>
+                <style>
+                    .table-container {
+                    display: flex;
+                    flex-direction: column;
+                    }
+
+                    .table {
+                    border: 1px solid black;
+                    margin-bottom: 0px;
+                    }
+                </style>
+
+                <table class="table table-borderless">
+                    <tr>
+                        <td colspan="6"
+                            style="border-left:2px solid black;border-bottom:1px solid black;border-top:2px solid black;">
+                            <span>
+                                <span t-if="env.context.get('proforma', False) or is_pro_forma">
+                                    <b>Pro-Forma Invoice No:</b>
+                                </span>
+                                <span t-elif="doc.state in ['draft','sent']">
+                                    <b>Quotation No:</b>
+                                </span>
+                                <span t-else="">
+                                    <b>Order No:</b>
+                                </span>
+                            </span>
+                        </td>
+                        <td colspan="6"
+                            style="border-right:2px solid black;border-bottom:1px solid black;border-top:2px solid black;">
+                            <span>
+                                <span t-if="env.context.get('proforma', False) or is_pro_forma">
+                                    <b>Pro-Forma Invoice Date:</b>
+                                </span>
+                                <span t-elif="doc.state in ['draft','sent']">
+                                    <b>Quotation Date:</b>
+                                </span>
+                                <span t-else="">
+                                    <b>Order Date:</b>
+                                </span>
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="6"
+                            style="border-right:0px solid black;border-left:2px solid black;border-bottom:1px solid black;">
+                            <span t-field="doc.name" style="color: black; font-size: 10px"/>
+
+                        </td>
+                        <td colspan="6"
+                            style="border-left:1px solid black;border-right:2px solid black;border-bottom:1px solid black;">
+                            <span t-field="doc.date_order" style="color: black; font-size: 10px">
+                                <strong t-if="doc.state in ['draft', 'sent']">Quotation Date:</strong>
+                                <strong t-else="">Order Date:</strong>
+                                <p class="m-0" t-field="doc.date_order" t-options='{"widget": "date"}'/>
+                            </span>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="12"
+                            style="border-right:2px solid black;border-left:2px solid black;border-bottom:1px solid black;">
+                            <span style="color: black; font-size: 12px">
+                                Sir,
+                                <br/>
+                                We Lia Georson Private Limited are the pioneers in the field of computer
+                                periferals
+                                sales.We
+                                value our clients and are constantly looking for ways to serve them better. we
+                                here with
+                                our
+                                best proposal for the requirements that you are having.
+                                <br/>
+                                We assure excellent support prompt delivery and competitive prices,we have been
+                                taught
+                                to
+                                provide you the best Our customer's response good or bad motive us.it cannot be
+                                a
+                                accident
+                                that they are statisfied.
+
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="6" style="border-left:2px solid black;">
+                            <span>
+                                <b>Name &amp; Address of Party :</b>
+                            </span>
+                            <br/>
+                            <b>
+                                <span t-field="doc.partner_id.name" style="color: black; font-size: 13px"/>
+                            </b>
+                            ,
+                            <br/>
+                            <span t-field="doc.partner_id.street" style="color: black; font-size: 10px"/>,
+                            <span t-field="doc.partner_id.street2" style="color: black; font-size: 10px"/>,
+                            <span t-field="doc.partner_id.city" style="color: black; font-size: 10px"/>,
+                            <b>
+                                <span style="color: black; font-size: 13px">PIN:</span>
+                            </b>
+                            <span t-field="doc.partner_id.zip" style="color: black; font-size: 10px"/>,
+                            <br/>
+                            <b>
+                                <span style="color: black; font-size: 13px">PHONE:</span>
+                            </b>
+                            <span t-field="doc.partner_id.phone" style="color: black; font-size: 10px"/>,
+                            <br/>
+                            <b>
+                                <span style="color: black; font-size: 13px">GSTIN:</span>
+                            </b>
+                            <span t-field="doc.partner_id.vat" style="color: black; font-size: 10px"/>
+                            <b>
+                                <span style="color: black; font-size: 13px">STATE:</span>
+                            </b>
+                            <span t-field="doc.partner_id.state_id" style="color: black; font-size: 10px"/>
+
+                        </td>
+                        <td colspan="6" style=" border-right:2px solid black;">
+                            <span>
+                                <b>Delivered At :</b>
+                            </span>
+                            <br/>
+                            <b>
+                                <span t-field="doc.partner_id.name" style="color: black; font-size: 13px"/>
+                            </b>
+                            ,
+                            <br/>
+                            <span t-field="doc.partner_id.street" style="color: black; font-size: 10px"/>,
+                            <span t-field="doc.partner_id.street2" style="color: black; font-size: 10px"/>,
+                            <span t-field="doc.partner_id.city" style="color: black; font-size: 10px"/>,
+                            <b>
+                                <span style="color: black; font-size: 13px">PIN:</span>
+                            </b>
+                            <span t-field="doc.partner_id.zip" style="color: black; font-size: 10px"/>,
+                            <br/>
+                            <b>
+                                <span style="color: black; font-size: 13px">PHONE:</span>
+                            </b>
+                            <span t-field="doc.partner_id.phone" style="color: black; font-size: 10px"/>,
+                            <br/>
+                            <b>
+                                <span style="color: black; font-size: 13px">GSTIN:</span>
+                            </b>
+                            <span t-field="doc.partner_id.vat" style="color: black; font-size: 10px"/>
+                            <b>
+                                <span style="color: black; font-size: 13px">STATE:</span>
+                            </b>
+                            <span t-field="doc.partner_id.state_id" style="color: black; font-size: 10px"/>
+                        </td>
+                    </tr>
+                </table>
+                <t t-set="lines_to_report" t-value="doc._get_order_lines_to_report()"/>
+                <t t-set="display_discount" t-value="any(l.discount for l in lines_to_report)"/>
+                <table class="table table-bordered">
+                    <!-- In case we want to repeat the header, remove "display: table-row-group" -->
+                    <thead>
+                        <tr>
+                            <b>
+
+                                <th name="th_serial" class="text-start"
+                                    style="font-size:13px;border-left:2px solid black;border-top:2px solid black; ">
+                                    S.NO
+                                </th>
+                                <th name="th_description" class="text-start"
+                                    style="font-size:13px; border-top:2px solid black;">HSN/SAC
+                                </th>
+                                <th name="th_quantity" class="text-end"
+                                    style="font-size:13px;text-align:center;border-top:2px solid black; ">
+                                    <center>ITEM
+                                        DESCRIPTION
+                                    </center>
+                                </th>
+                                <th name="th_quantity" class="text-end"
+                                    style="font-size:13px;border-top:2px solid black; ">
+                                    QUANTITY
+                                </th>
+                                <th name="th_priceunit" class="text-end"
+                                    style="font-size:13px;border-top:2px solid black; ">
+                                    UNIT PRICE
+                                </th>
+                                <th name="th_discount" class="text-end"
+                                    style="font-size:13px;border-top:2px solid black; ">
+                                    <span>CGST%</span>
+                                    <br/>
+                                    <span>AMOUNT</span>
+                                </th>
+                                <th name="th_discount" class="text-end"
+                                    style="font-size:13px;border-top:2px solid black; ">
+                                    <span>SGST%</span>
+                                    <br/>
+                                    <span>AMOUNT</span>
+                                </th>
+                                <th name="th_discount" class="text-end"
+                                    style="font-size:13px;border-top:2px solid black; ">
+                                    <span>IGST%</span>
+                                    <br/>
+                                    <span>AMOUNT</span>
+                                </th>
+                                <th name="th_subtotal" class="text-end"
+                                    style="font-size:13px;border-right:2px solid black;border-top:2px solid black; ">
+                                    <span>AMOUNT</span>
+                                    <!--                            <span groups="account.group_show_line_subtotals_tax_excluded">Amount</span>-->
+                                    <!--                            <span groups="account.group_show_line_subtotals_tax_included">Total Price</span>-->
+                                </th>
+
+                            </b>
+                        </tr>
+                    </thead>
+                    <tbody class="sale_tbody">
+                        <!---->
+                        <t t-set="current_subtotal" t-value="0"/>
+                        <!---->
+                        <t t-set="qty_total" t-value="0.00"/>
+                        <t t-set="unit_price_total" t-value="0.00"/>
+                        <t t-set="cgst_total" t-value="0.00"/>
+                        <t t-set="sgst_total" t-value="0.00"/>
+                        <!--                    <t t-set="kfc_total" t-value="0.00"/>-->
+                        <t t-set="igst_total" t-value="0.00"/>
+                        <t t-set="amount_total" t-value="0.00"/>
+                        <t t-set="price_total" t-value="0.00"/>
+                        <t t-set="price_total_amount" t-value="0.00"/>
+                        <t t-foreach="lines_to_report" t-as="line">
+
+                            <!---->
+                            <t t-set="current_subtotal" t-value="current_subtotal + line.price_subtotal"
+                               groups="account.group_show_line_subtotals_tax_excluded"/>
+                            <t t-set="current_subtotal" t-value="current_subtotal + line.price_total"
+                               groups="account.group_show_line_subtotals_tax_included"/>
+                            <!---->
+                            <tr t-att-class="'bg-200 fw-bold o_line_section' if line.display_type == 'line_section' else 'fst-italic o_line_note' if line.display_type == 'line_note' else ''">
+
+                                <t t-if="not line.display_type">
+                                    <t t-set="qty_total" t-value="qty_total + line.product_uom_qty"/>
+                                    <t t-set="unit_price_total" t-value="unit_price_total + line.price_unit"/>
+                                    <td name="td_serial" style="font-size:11px; border-left:2px solid black;">
+                                        <span t-esc="line_index+1"/>
+                                    </td>
+                                    <td name="td_hsn_code" style="font-size:11px; ">
+                                        <span t-field="line.product_template_id.l10n_in_hsn_code"/>
+                                    </td>
+                                    <td name="td_name" style="font-size:11px; ">
+                                        <b>
+                                            <span t-field="line.product_template_id.name"/>
+                                        </b>
+                                    </td>
+                                    <td name="td_quantity" class="text-end" style="font-size:11px; ">
+                                        <span t-field="line.product_uom_qty"/>
+                                        <span t-field="line.product_uom"/>
+                                    </td>
+                                    <td name="td_priceunit" class="text-end" style="font-size:11px; ">
+                                        <span t-field="line.price_unit"/>
+                                    </td>
+                                    <t t-set="tax_value" t-value="line.sale_order_line_tax_calculation(line)"/>
+                                    <t t-set="cgst_total"
+                                       t-value="cgst_total + float(tax_value['CGST']['value'])"/>
+                                    <t t-set="sgst_total"
+                                       t-value="sgst_total + float(tax_value['SGST']['value'])"/>
+                                    <!--                                <t t-set="kfc_total" t-value="kfc_total + float(tax_value['KFC']['value'])"/>-->
+                                    <t t-set="igst_total"
+                                       t-value="igst_total + float(tax_value['IGST']['value'])"/>
+
+                                    <t t-set="price_total"
+                                       t-value="price_total+(line.product_uom_qty)*(line.price_unit)+ float(tax_value['CGST']['value'])+float(tax_value['SGST']['value'])+float(tax_value['IGST']['value'])"/>
+                                    <t t-set="price_total_amount"
+                                       t-value="price_total_amount+(line.product_uom_qty)*(line.price_unit)"/>
+
+
+                                    <td style="font-size:11px;text-align:right;">
+                                        <t t-esc="tax_value['CGST']['per']"/>
+                                        %
+                                        <br/>
+                                        <t t-esc="tax_value['CGST']['value']"/>
+                                    </td>
+                                    <td style="font-size:11px;text-align:right; ">
+                                        <t t-esc="tax_value['SGST']['per']"/>
+                                        %
+                                        <br/>
+                                        <t t-esc="tax_value['SGST']['value']"/>
+                                    </td>
+                                    <td style="font-size:11px;text-align:right; ">
+                                        <t t-esc="tax_value['IGST']['per']"/>
+                                        %
+                                        <br/>
+                                        <t t-esc="tax_value['IGST']['value']"/>
+                                    </td>
+                                    <td t-if="not line.is_downpayment" name="td_subtotal"
+                                        class="text-end o_price_total"
+                                        style="font-size:11px; border-right:2px solid black;">
+                                        <t t-esc="'%.2f' % price_total"/>
+                                        <!--                                    <span t-field="line.price_subtotal"-->
+                                        <!--                                          groups="account.group_show_line_subtotals_tax_excluded"/>-->
+                                        <!--                                    <span t-field="line.price_total"-->
+                                        <!--                                          groups="account.group_show_line_subtotals_tax_included"/>-->
+                                    </td>
+                                    <t t-set="price_total" t-value="0"/>
+                                </t>
+
+
+                                <t t-elif="line.display_type == 'line_section'">
+                                    <td name="td_section_line" colspan="99">
+                                        <span t-field="line.name"/>
+                                    </td>
+                                    <t t-set="current_section" t-value="line"/>
+                                    <t t-set="current_subtotal" t-value="0"/>
+                                </t>
+                                <t t-elif="line.display_type == 'line_note'">
+                                    <td name="td_note_line" colspan="99">
+                                        <span t-field="line.name"/>
+                                    </td>
+                                </t>
+                            </tr>
+
+
+                        </t>
+                    </tbody>
+                    <tr style="text-align:right;">
+                        <t t-set="amount_total"
+                           t-value="amount_total+price_total_amount+cgst_total+sgst_total"/>
+                        <td colspan="3" style="border-left:2px solid black;">
+                            <b>Total</b>
+                        </td>
+                        <td>
+                            <span t-esc="qty_total"/>
+                        </td>
+                        <td>
+                            <span t-esc="unit_price_total"/>
+                        </td>
+                        <td>
+                            <span t-esc="cgst_total"/>
+                        </td>
+                        <td>
+                            <span t-esc="sgst_total"/>
+                        </td>
+                        <td>
+                            <span t-esc="igst_total"/>
+                        </td>
+                        <td style="border-right:2px solid black;">
+                            <span t-esc="amount_total"/>
+                        </td>
+                    </tr>
+
+                </table>
+                <table class="table table-bordered">
+
+                    <tr width="100%">
+                        <td width="70%"  style="border-left:2px solid black;border-bottom:2px solid black;">
+                            <span>
+                                <b>Net Amount In Words:</b>
+                            </span>
+                            <span t-field="doc.number_to_words"/>
+                        </td>
+                        <td width="15%" style="border-bottom:2px solid black;">
+                            <b>
+                                <span>Round off</span>
+                                <br/>
+                                <span>Total</span>
+                            </b>
+                        </td>
+                        <td width="15%"  style="border-bottom:2px solid black;border-right:2px solid black;">
+                            <span>----------</span>
+                            <br/>
+                            <span t-esc="amount_total"/>
+                        </td>
+                    </tr>
+                </table>
+
+
+                <t t-set="doc" t-value="doc.with_context(lang=doc.partner_id.lang)"/>
+                <t t-set="forced_vat"
+                   t-value="doc.fiscal_position_id.foreign_vat"/> <!-- So that it appears in the footer of the report instead of the company VAT if it's set -->
+
+                <div class="page">
+
+
+                    <!-- Is there a discount on at least one line? -->
+                    <t t-set="lines_to_report" t-value="doc._get_order_lines_to_report()"/>
+                    <t t-set="display_discount" t-value="any(l.discount for l in lines_to_report)"/>
+
+                    <div class="oe_structure"></div>
+
+
+                    <div t-if="not doc.signature" class="oe_structure"></div>
+                    <div t-else="" class="mt-4 ml64 mr4" name="signature">
+                        <div class="offset-8">
+                            <strong>Signature</strong>
+                        </div>
+                        <div class="offset-8">
+                            <img t-att-src="image_data_uri(doc.signature)"
+                                 style="max-height: 4cm; max-width: 8cm;"/>
+                        </div>
+                        <div class="offset-8 text-center">
+                            <span t-field="doc.signed_by">iefei</span>
+                        </div>
+                    </div>
+                </div>
+                <t t-call="reports_sale.sale_order_report_report_footer" t-lang="doc.partner_id.lang"/>
+            </div>
+        </t>
+    </template>
+
+
+    <template id="sale_order_report_report_header">
+        <div class="header">
+
+            <div style="margin-left:100px;position:absolute;left:50px;top:350px;opacity:0.15;z-index:1000;transform:rotate(00deg);-webkit-transform:rotate(00deg);">
+                <img src='/reports_sale/static/watermark.png'
+                     style="width:550px;height:500px"/>
+
+            </div>
+            <table class="table table-sm table-borderless">
+                <tr>
+                    <td style="border-left:2px solid black;
+                                           border-top:2px solid black;">
+                        <img width="200px" t-attf-src="/reports_sale/static/LIA GEORSON.png"
+                             alt="Logo"/>
+                    </td>
+                    <td colspan="5" align="center"
+                        style="border-top:2px solid black;">
+                        <div>
+                            <b>
+                                <span t-field="doc.company_id.name" style="color: black; font-size: 20px"/>
+                            </b>
+                            <br/>
+                            <span t-field="doc.company_id.street" style="color: black; font-size: 10px"/>,
+                            <span t-field="doc.company_id.street2" style="color: black; font-size: 10px"/>,
+                            <span t-field="doc.company_id.city" style="color: black; font-size: 10px"/>,
+                            <span t-field="doc.company_id.state_id" style="color: black; font-size: 10px"/>,
+                            <span t-field="doc.company_id.zip" style="color: black; font-size: 10px"/>
+                            <br/>
+                            <span style="color: black; font-size: 12px">
+                                <b>Phone:</b>
+                            </span>
+                            <span t-field="doc.company_id.phone" style="color: black; font-size: 10px"/>
+                            <span style="color: black; font-size: 12px">
+                                <b>Mobile:</b>
+                            </span>
+                            <span t-field="doc.company_id.mobile" style="color: black; font-size: 10px"/>
+                            <br/>
+                            <span style="color: black; font-size: 12px">
+                                <b>Mail:</b>
+                            </span>
+                            <span t-field="doc.company_id.email" style="color: black; font-size: 10px"/>
+                            <br/>
+                        </div>
+                    </td>
+                    <td align="center"
+                        style="border-right:2px solid black;
+                    border-top:2px solid black;">
+                        <span style="color: black; font-size: 12px">
+                            <b>GSTIN:</b>
+                        </span>
+                        <span t-field="doc.company_id.vat" style="color: black; font-size: 10px"/>
+                        <br/>
+                        <span style="color: black; font-size: 12px">
+                            <b>STATE:</b>
+                        </span>
+                        <span t-field="doc.company_id.state_id" style="color: black; font-size: 10px"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="12" align="center"
+                        style="border-right:2px solid black;
+                    border-bottom:2px solid black;border-left:2px solid black;">
+                        <span t-if="env.context.get('proforma', False) or is_pro_forma">
+                            <b>Pro-Forma Invoice</b>
+                        </span>
+                        <span t-elif="doc.state in ['draft','sent']">
+                            <b>Quotation</b>
+                        </span>
+                        <span t-else="">
+                            <b>Sale Order</b>
+                        </span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+    </template>
+
+
+    <template id="sale_order_report_report_footer">
+        <div class="footer">
+            <table class="table table-bordered">
+                <tr style="border:2px solid black;">
+                    <td colspan="7">
+                        <b>
+                            <span t-field="doc.note" style="font-size:11px"/>
+                        </b>
+                    </td>
+                    <td colspan="5" style="border-right:2px solid black;">
+                        <span t-if="env.context.get('proforma', False) or is_pro_forma">
+                            <b>Bank Account Details</b>
+                            <br/>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td style="font-size:11px;">
+                                        <b>Account No:</b>
+                                    </td>
+                                    <td style="font-size:10px;;
+
+
+                                          padding-left: 0px;">10030200035181
+                                    </td>
+                                    <td style=" font-size:10px; padding-left: 0px;">0164073000041731
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="font-size:11px;">
+                                        <b>Bank Name:</b>
+                                    </td>
+                                    <td style="font-size:10px; padding-left: 0px;">Federal Bank</td>
+                                    <td style="font-size:10px; padding-left: 0px;">SOUTH INDIAN BANK</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-size:11px;">
+                                        <b>IFSC Code:</b>
+                                    </td>
+                                    <td style="font-size:10px; padding-left: 0px;">FDRL0001003</td>
+                                    <td style="font-size:10px; padding-left: 0px;">IFSC SIBL0000164</td>
+                                </tr>
+                            </table>
+                            <center style="font-size:15px;">For LIA GEORSON PRIVATE LIMITED</center>
+                            <br/>
+                            <t style="font-size:15px;">
+                                <center>Authorised Signatory</center>
+                            </t>
+                        </span>
+
+                        <span t-elif="doc.state in ['draft','sent']">
+                            <b>Bank Account Details</b>
+                            <br/>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td style="font-size:11px;">
+                                        <b>Account No:</b>
+                                    </td>
+                                    <td style="font-size:10px;;
+
+
+                                          padding-left: 0px;">10030200035181
+                                    </td>
+                                    <td style=" font-size:10px; padding-left: 0px;">0164073000041731
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="font-size:11px;">
+                                        <b>Bank Name:</b>
+                                    </td>
+                                    <td style="font-size:10px; padding-left: 0px;">Federal Bank</td>
+                                    <td style="font-size:10px; padding-left: 0px;">SOUTH INDIAN BANK</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-size:11px;">
+                                        <b>IFSC Code:</b>
+                                    </td>
+                                    <td style="font-size:10px; padding-left: 0px;">FDRL0001003</td>
+                                    <td style="font-size:10px; padding-left: 0px;">IFSC SIBL0000164</td>
+                                </tr>
+                            </table>
+                            <center style="font-size:15px;">For LIA GEORSON PRIVATE LIMITED</center>
+                            <br/>
+                            <t style="font-size:15px;">
+                                <center>Authorised Signatory</center>
+                            </t>
+                        </span>
+                        <span t-else="">
+
+                            <b>Bank Account Details</b>
+
+                            <br/>
+                            <span>
+                                <b>Account No:</b>
+                                0164073000041731
+                            </span>
+                            <br/>
+                            <span>
+                                <b>Bank Name</b>
+                                South Indian Bank
+                            </span>
+                            <br/>
+                            <span>
+                                <b>IFSC Code</b>
+                                SIBL0000164
+                            </span>
+                            <br/>
+                            <span style="font-size:15px;">
+                                <center>
+                                    <b>For LIA GEORSON PRIVATE LIMITED</b>
+                                </center>
+                            </span>
+                            <br/>
+                            <br/>
+                            <br/>
+                            <span style="font-size:15px;">
+                                <center>
+                                    <b>Authorised Signatory</b>
+                                </center>
+                            </span>
+
+                        </span>
+
+
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </template>
+
+
+</odoo>
